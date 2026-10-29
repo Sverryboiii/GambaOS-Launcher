@@ -1,7 +1,7 @@
 import io, os, shutil, zipfile, urllib.request, urllib.error, sys, importlib.util, screeninfo
 
 appdata = os.path.join(
-    str(os.getenv("APPDATA")) if os.name == "nt"\
+    str(os.getenv("LOCALAPPDATA")) if os.name == "nt"\
         else os.path.join(os.path.expanduser("~"), ".config"), "GambaOS-Sverryboiii"
 )
 instances_path = os.path.join(appdata, "instances")
