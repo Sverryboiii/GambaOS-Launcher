@@ -18,7 +18,7 @@ def open_instance(instance):
     sys.path.insert(0, instance)
     spec = importlib.util.spec_from_file_location(
         "appdata_GambaOS",
-        os.path.join(instance, "src/gambaos/system/GambaOS/main.py")
+        os.path.join(instance, "src/gambaos/system/GambaOS/main.py").replace("\\", "/")
     )
     gamba_os = importlib.util.module_from_spec(spec)
     sys.modules["gamba_main"] = gamba_os
@@ -47,7 +47,7 @@ def download_gambaos_version(version: str = "vTEST-0.1.1", dest_directory: str =
         with zipfile.ZipFile(io.BytesIO(repo_data)) as zip_ref:
 
             root = zip_ref.namelist()[0].split("/")[0]
-            src = os.path.join(root, "src")
+            src = os.path.join(root, "src").replace("\\", "/")
 
             last_part = ""
 
@@ -56,7 +56,7 @@ def download_gambaos_version(version: str = "vTEST-0.1.1", dest_directory: str =
                     continue
 
                 relative_path = file.filename.replace(f"{root}/", "", 1)
-                target_path = os.path.join(target_dir, relative_path)
+                target_path = os.path.join(target_dir, relative_path).replace("\\", "/")
                 new_path = relative_path.split("/")[1]
                 if new_path != last_part:
                     print(f"Downloading path: {new_path}")
