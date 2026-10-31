@@ -1,17 +1,35 @@
-import io, os, shutil, zipfile, urllib.request, urllib.error, sys, importlib.util, screeninfo
+import io, os, shutil, zipfile, urllib.request, urllib.error, sys, importlib.util, json, pygame
+from pathlib import Path
+
+debug = False
+
+main_repo_url = "https://www.github.com/Sverryboiii/GambaOS/archive/refs/heads/main.zip"
 
 appdata = os.path.join(
     str(os.getenv("LOCALAPPDATA")) if os.name == "nt"\
         else os.path.join(os.path.expanduser("~"), ".config"), "GambaOS-Sverryboiii"
 )
 instances_path = os.path.join(appdata, "instances")
+temp_folder = os.path.join(appdata, "temp")
+if not os.path.exists(temp_folder):
+    os.makedirs(temp_folder)
+
+base = Path(__file__).resolve().parent
 
 reset: bool = False
 
 def open_instance(instance):
+    print("Starting GambaOS...")
+    import sverpykit, screeninfo
+
     global reset
     if reset:
         return
+
+    with open(os.path.join(temp_folder, "tmp.json"), "w") as f:
+        json.dump({
+            "instance": instance.split("/")[-1]
+        }, f, indent=4)
 
     if instance in sys.path:
         sys.path.remove(instance)
@@ -22,6 +40,7 @@ def open_instance(instance):
     )
     gamba_os = importlib.util.module_from_spec(spec)
     sys.modules["gamba_main"] = gamba_os
+    print("Starting logs from here:")
     spec.loader.exec_module(gamba_os)
 
 def download_gambaos_version(version: str = "vTEST-0.1.1", dest_directory: str = ""):
@@ -38,6 +57,8 @@ def download_gambaos_version(version: str = "vTEST-0.1.1", dest_directory: str =
     os.makedirs(target_dir)
 
     url = f"https://github.com/sverryboiii/gambaos/archive/refs/tags/{version}.zip"
+    if debug:
+        url = main_repo_url
 
     try:
 
@@ -80,7 +101,6 @@ def download_gambaos_version(version: str = "vTEST-0.1.1", dest_directory: str =
 def main():
     legal_chars = "1234567890abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ _-"
     while True:
-        print(" ==== Welcome To GambaOS Launcher! ==== ")
         print("Press CTRL + C to exit at any time!")
         instance = input("GambaOS Instance: ")
         if any(char not in legal_chars for char in instance):
@@ -90,8 +110,20 @@ def main():
         if os.path.exists(full_path):
             open_instance(full_path)
         else:
-            version = input("Version: ")
-            download_gambaos_version(version, instance)
+            version = input("Version: ") if not debug else ""
+            payload = download_gambaos_version(version, instance)
+            if payload.get("error", None):
+                print(payload["error"])
 
 if __name__ == "__main__":
-    main()
+    print("\n ==== Welcome To GambaOS Launcher! ==== \n")
+    while True:
+        if debug:
+            main()
+            continue
+        try:
+            main()
+        except Exception:
+            pygame.quit()
+            print("\033[31m\n[Error] >> Oops something went wrong, please contact us on discord!\033[0m")
+        print("Logs ended!")
